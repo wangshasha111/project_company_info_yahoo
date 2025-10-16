@@ -1,30 +1,44 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime, timedelta
 import requests
 import time
 import os
 
+# Conditional import of plotly with fallback
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    st.error("📦 Plotly is not installed. Charts will be disabled.")
+    st.info("🔄 Please wait while dependencies are being installed...")
+    PLOTLY_AVAILABLE = False
+
 # Check if running in Streamlit Cloud
 IS_CLOUD_DEPLOYMENT = os.getenv('STREAMLIT_SHARING_MODE') == 'cloud' or 'streamlit.app' in os.getenv('HOSTNAME', '')
 
 # Initialize app with error handling
-try:
-    # Test basic imports and functionality
-    import pandas as pd
-    import yfinance as yf
-    import plotly.graph_objects as go
-    
-    # Simple test to ensure libraries work
-    test_df = pd.DataFrame({'test': [1, 2, 3]})
-    
-except Exception as e:
-    st.error(f"Failed to initialize app: {str(e)}")
-    st.info("Please check that all required packages are installed correctly.")
-    st.stop()
+def check_core_dependencies():
+    """Check if core dependencies are available"""
+    if not PLOTLY_AVAILABLE:
+        st.warning("⚠️ Plotly is not available - charts will be limited")
+        st.info("🔄 If this persists, try refreshing the page")
+        return False
+    return True
+
+# Run dependency check
+check_core_dependencies()
+
+# Helper function for safe plotting
+def safe_plotly_chart(fig, **kwargs):
+    """Safely display plotly chart with fallback"""
+    if PLOTLY_AVAILABLE:
+        safe_plotly_chart(fig, **kwargs)
+    else:
+        st.error("📊 Chart cannot be displayed - Plotly is not available")
+        st.info("🔄 Please refresh the page or check the app logs")
 
 # Page configuration
 st.set_page_config(
@@ -536,7 +550,7 @@ elif selected_tab == 1:
                             height=450,
                             template="plotly_white"
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        safe_plotly_chart(fig, use_container_width=True)
                     else:
                         st.info("No recent price data available")
                 except Exception as e:
@@ -614,7 +628,7 @@ elif selected_tab == 2:
                         template="plotly_white"
                     )
                     
-                    st.plotly_chart(fig, use_container_width=True)
+                    safe_plotly_chart(fig, use_container_width=True)
                     
                     # Volume Chart
                     st.markdown("### 📊 Volume Chart")
@@ -634,7 +648,7 @@ elif selected_tab == 2:
                         template="plotly_white"
                     )
                     
-                    st.plotly_chart(fig_volume, use_container_width=True)
+                    safe_plotly_chart(fig_volume, use_container_width=True)
                     
                     # Data Table
                     st.markdown("### 📋 Historical Data Table")
@@ -783,7 +797,7 @@ elif selected_tab == 3:
                             template="plotly_white"
                         )
                         
-                        st.plotly_chart(fig, use_container_width=True)
+                        safe_plotly_chart(fig, use_container_width=True)
                         
                         # Insights
                         st.markdown("### 💡 Key Insights")
