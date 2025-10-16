@@ -11,19 +11,19 @@ import os
 # Check if running in Streamlit Cloud
 IS_CLOUD_DEPLOYMENT = os.getenv('STREAMLIT_SHARING_MODE') == 'cloud' or 'streamlit.app' in os.getenv('HOSTNAME', '')
 
-# Health check function for deployment
-def health_check():
-    """Simple health check to ensure app can start"""
-    try:
-        # Test basic functionality
-        test_data = pd.DataFrame({'test': [1, 2, 3]})
-        return True
-    except Exception as e:
-        st.error(f"Health check failed: {str(e)}")
-        return False
-
-# Run health check
-if not health_check():
+# Initialize app with error handling
+try:
+    # Test basic imports and functionality
+    import pandas as pd
+    import yfinance as yf
+    import plotly.graph_objects as go
+    
+    # Simple test to ensure libraries work
+    test_df = pd.DataFrame({'test': [1, 2, 3]})
+    
+except Exception as e:
+    st.error(f"Failed to initialize app: {str(e)}")
+    st.info("Please check that all required packages are installed correctly.")
     st.stop()
 
 # Page configuration
@@ -72,14 +72,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 添加缓存装饰器，减少 API 调用
-@st.cache_data(ttl=300)  # 缓存5分钟
+@st.cache_data(ttl=300, show_spinner=False)  # 缓存5分钟
 def get_ticker_data(symbol):
     """获取股票数据并缓存"""
     try:
+        if not symbol or len(symbol) < 1:
+            return None
         ticker = yf.Ticker(symbol)
-        return ticker
+        # Test if ticker is valid by trying to get basic info
+        info = ticker.info
+        if info and len(info) > 0:
+            return ticker
+        return None
     except Exception as e:
-        st.error(f"Error creating ticker: {str(e)}")
+        # Don't show error on initial load, only when user actually searches
         return None
 
 # Title and description - Compact version
@@ -1100,3 +1106,9 @@ else:
     """
 
 st.markdown(footer_text, unsafe_allow_html=True)
+
+# Global error handler for debugging in cloud
+if IS_CLOUD_DEPLOYMENT:
+    st.sidebar.success("✅ App running on Streamlit Cloud")
+else:
+    st.sidebar.info("🏠 Running locally")
