@@ -35,7 +35,7 @@ check_core_dependencies()
 def safe_plotly_chart(fig, **kwargs):
     """Safely display plotly chart with fallback"""
     if PLOTLY_AVAILABLE:
-        safe_plotly_chart(fig, **kwargs)
+        st.plotly_chart(fig, **kwargs)
     else:
         st.error("📊 Chart cannot be displayed - Plotly is not available")
         st.info("🔄 Please refresh the page or check the app logs")
