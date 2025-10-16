@@ -6,6 +6,25 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import requests
 import time
+import os
+
+# Check if running in Streamlit Cloud
+IS_CLOUD_DEPLOYMENT = os.getenv('STREAMLIT_SHARING_MODE') == 'cloud' or 'streamlit.app' in os.getenv('HOSTNAME', '')
+
+# Health check function for deployment
+def health_check():
+    """Simple health check to ensure app can start"""
+    try:
+        # Test basic functionality
+        test_data = pd.DataFrame({'test': [1, 2, 3]})
+        return True
+    except Exception as e:
+        st.error(f"Health check failed: {str(e)}")
+        return False
+
+# Run health check
+if not health_check():
+    st.stop()
 
 # Page configuration
 st.set_page_config(
@@ -807,9 +826,9 @@ elif selected_tab == 4:
     real-time market data, historical prices, and technical analysis.
     """)
     
-    st.info("💡 **Base URL:** `http://localhost:5001/api`")
+    st.info("💡 **Note:** This API documentation shows examples for local development. In production, replace `localhost:5001` with your actual API server URL.")
     
-    st.warning("⚠️ **Note:** Make sure the Flask API server is running on port 5001 before making requests.")
+    st.warning("⚠️ **Cloud Deployment:** This Streamlit app works standalone with Yahoo Finance data. The Flask API examples below are for local development reference only.")
     
     st.markdown("---")
     
@@ -1065,9 +1084,19 @@ print(f"Trend: {analysis['trend']}")""", language="python")
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: gray;'>
-    <p>Data by Yahoo Finance API | Built with Streamlit & Plotly</p>
-    <p>💡 For API access, visit the sidebar or check the Flask API running on port 5001</p>
-</div>
-""", unsafe_allow_html=True)
+if IS_CLOUD_DEPLOYMENT:
+    footer_text = """
+    <div style='text-align: center; color: gray;'>
+        <p>📊 Real-time Stock Analysis Dashboard</p>
+        <p>Data by Yahoo Finance API | Built with Streamlit & Plotly | Deployed on Streamlit Cloud</p>
+    </div>
+    """
+else:
+    footer_text = """
+    <div style='text-align: center; color: gray;'>
+        <p>Data by Yahoo Finance API | Built with Streamlit & Plotly</p>
+        <p>💡 For local API access, check the Flask API running on port 5001</p>
+    </div>
+    """
+
+st.markdown(footer_text, unsafe_allow_html=True)

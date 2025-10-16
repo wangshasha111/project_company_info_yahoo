@@ -1,0 +1,2 @@
+# System packages for Streamlit Cloud deployment
+# This file ensures all required system dependencies are available

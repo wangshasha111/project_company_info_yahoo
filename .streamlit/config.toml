@@ -6,6 +6,11 @@ textColor = "#262730"
 font = "sans serif"
 
 [server]
-headless = false
+headless = true
 port = 8501
-runOnSave = true
+runOnSave = false
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
